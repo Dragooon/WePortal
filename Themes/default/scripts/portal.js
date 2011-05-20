@@ -65,7 +65,8 @@ $(function()
 		drag.offset_left = offLeft;
 		drag.original_offset = $(this).offset();
 
-		$(this).css('position', 'absolute').css('z-index', 999).updatePos(e, e.pageX, e.pageY);
+		$(this).data('orig_width', $(this).css('width'));
+		$(this).css('width', $(this).width()).css('position', 'absolute').css('z-index', 999).updatePos(e, e.pageX, e.pageY);
 	};
 	$.fn.updatePos = function(e, mouseX, mouseY)
 	{
@@ -89,6 +90,7 @@ $(function()
 	{
 		if (drag.in_progress)
 		{
+			$(drag.element).css('width', $(drag.element).data('orig_width'));
 			$(drag.element).attr('data-in-drag', false);
 			drag.in_progress = false;
 			if ($(drag.element).data('options').dragend)
