@@ -29,15 +29,16 @@ wesql::extend();
 wesql::extend('packages');
 
 // Create the block's table
-wedbPackages::create_table('{db_prefix}wep_blocks',
+wedbPackages::create_table('{db_prefix}wep_contents',
 	array(
-		array('name' => 'id_block', 'type' => 'int', 'auto' => true),
+		array('name' => 'id_object', 'type' => 'int', 'auto' => true),
+		array('name' => 'holder', 'type' => 'varcha', 'size' => 30, 'default' => 'block'),
 		array('name' => 'title', 'type' => 'varchar', 'size' => 150, 'default' => '-no title-'),
 		array('name' => 'controller', 'type' => 'varchar', 'size' => 50),
 		array('name' => 'bar', 'type' => 'varchar', 'size' => 25),
 		array('name' => 'position', 'type' => 'int', 'default' => 0),
 		array('name' => 'adjustable', 'type' => 'enum(\'0\', \'1\')', 'default' => 1),
-		array('name' => 'parameters', 'type' => 'text', 'default' => ''), // Parameters adjustable by ACP which are passed to the Block controller
+		array('name' => 'parameters', 'type' => 'text', 'default' => ''), // Parameters adjustable by ACP which are passed to the ContentProvider controller
 		array('name' => 'enabled', 'type' => 'enum(\'0\', \'1\')', 'default' => 0),
 		array('name' => 'groups', 'type' => 'text', 'default' => ''),
 	),

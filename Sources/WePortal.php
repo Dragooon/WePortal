@@ -26,9 +26,10 @@ function WePortalAction()
 class WePortal
 {
 	/**
-	 * Stores the block controllers cache
+	 * Stores the content provider's cache
 	 */
-	protected $block_controllers = array();
+	protected $content_providers = array();
+	protected $content_holders = array();
 
 	/**
 	 * Stores the settings related to the portal
@@ -53,10 +54,9 @@ class WePortal
 
 	/**
 	 * List for all the areas and their methods that can be called
+	 * Stored in the format [area] => callback
 	 */
-	protected static $areas = array(
-		'blockupdate' => 'blockupdate',
-	);
+	protected $areas = array();
 
 	/**
 	 * Returns(or creates) the instance of the portal
@@ -86,32 +86,55 @@ class WePortal
 		require_once($boarddir . '/SSI.php');
 
 		// Load the essential files
-		loadSource('WePortal.Bar');
-		loadSource('WePortal.Block');
+		loadSource('WePortal.ContentProvider');
+		loadSource('WePortal.Holder');
 
 		// Load the settings
 		$this->loadSettings();
 
-		// Load the block controllers
-		$this->loadBlockControllers();
+		// Load the content controllers
+		$this->loadContentProviders();
 
 		// Load the blocks themselves along with user block preference
+		// I know this is somewhat hard-coding it but it is to improve performance
+		// So that the bars don't perform multiple queries in order to fetch blocks
 		$this->loadBlocks();
 		$this->loadMemberBlocks();
 
-		// The possible bar's positions that exist, initiate and render them
-		$positions = array('left', 'right');
-		foreach ($positions as $pos)
-		{
-			if ((int) $this->getSetting('bar_enabled_' . $pos) == 1)
-			{
-				$class_name = 'WePBar_' . $pos;
-				$this->bars[$pos] = new $class_name($this);
-			}
-		}
+		// Load all the content holders
+		$this->loadContentHolder();
 
 		// Render the final little leftover templates
 		$this->render();
+	}
+
+	/**
+	 * Registers an action, meant to be used only be a holder
+	 *
+	 * @access public
+	 * @param string $area The area to register
+	 * @param callback $callback The callback to perform
+	 * @return void
+	 */
+	public function registerAction(string $area, $callback)
+	{
+		if (!is_callable($callback) || empty($area))
+			return false;
+
+		$this->areas[$area] = $callback;
+	}
+
+	/**
+	 * Removes an action if registered
+	 *
+	 * @access public
+	 * @param string $area The area to unregister
+	 * @return void
+	 */
+	public function unregisterAction(string $area)
+	{
+		if (isset($this->areas[$area]))
+			unset($this->areas[$area]);
 	}
 
 	/**
@@ -130,9 +153,9 @@ class WePortal
 		add_css_file('portal', true);
 		add_js_file('scripts/portal.js');
 
-		// Render the bars
-		foreach ($this->bars as $bar)
-			$bar->render();
+		// Render all the content holders
+		foreach ($this->content_holders as $holder)
+			$holder->render();
 	}
 
 	/**
@@ -145,7 +168,7 @@ class WePortal
 	{
 		global $user_info;
 
-		$this->blocks = self::fetchBlocks(false, $user_info['groups']);
+		$this->blocks = self::fetchContentProviders(false, 'block', $user_info['groups']);
 	}
 
 	/**
@@ -162,28 +185,39 @@ class WePortal
 	}
 
 	/**
-	 * Fetches blocks from the database
+	 * Fetches content providers from the DB
 	 *
 	 * @static
 	 * @access public
 	 * @param bool $enabled_check Whether to check if the block is enabled or not
+	 * @param string $holder The holder to fetch from
 	 * @param array $groups Member groups to check, null to skip
+	 * @param int $object Any specific object to load
 	 * @return array The array containing blocks
 	 */
-	public static function fetchBlocks(bool $enabled_check, $groups)
+	public static function fetchContentProviders(bool $enabled_check, string $holder = 'block', $groups, int $id_object)
 	{
-		global $user_info;
+		$clauses = array();
+		if ($enabled_check)
+			$clauses[] = 'c.enabled = 1';
+		if (!empty($holder))
+			$clauses[] = 'c.holder = {string:holder}';
+		if (!empty($id_object))
+			$clauses[] = 'c.id_object = {int:object}';
 
 		// Get the blocks from the database
 		$request = wesql::query('
-			SELECT b.id_block, b.title, b.controller, b.bar, b.position, b.adjustable,
-					b.parameters, b.groups, b.enabled
-			FROM {db_prefix}wep_blocks AS b' . ($enabled_check ? '
-			WHERE b.enabled = 1' : '') . '
+			SELECT c.id_object, c.holder, c.title, c.controller, c,bar, c.position, c.adjustable,
+					c.parameters, c.groups, c.enabled
+			FROM {db_prefix}wep_contents AS c' . (!empty($clauses) ? '
+			WHERE' . implode('
+				AND ', $clauses)  : '') . '
 			ORDER BY b.position ASC',
-			array()
+			array(
+				'holder' => $holder,
+			)
 		);
-		$blocks = array();
+		$content_providers = array();
 		while ($row = wesql::fetch_assoc($request))
 		{
 			if (!$user_info['is_admin'] && !is_null($groups) && count(array_intersect($groups, explode(',', $row['groups']))) == 0)
@@ -191,8 +225,9 @@ class WePortal
 			if (empty($row['controller']))
 				continue;
 
-			$blocks[$row['id_block']] = array(
-				'id' => $row['id_block'],
+			$content_providers[$row['id_object']] = array(
+				'id' => $row['id_object'],
+				'holder' => $row['holder'],
 				'title' => $row['title'],
 				'controller' => $row['controller'],
 				'bar' => $row['bar'],
@@ -206,7 +241,7 @@ class WePortal
 		wesql::free_result($request);
 
 		// Return the result set
-		return $blocks;
+		return $content_providers;
 	}
 
 	/**
@@ -273,20 +308,20 @@ class WePortal
 	 * @access protected
 	 * @return void
 	 */
-	protected function loadBlockControllers()
+	protected function loadContentProviders()
 	{
 		global $sourcedir, $context;
 
-		// Get the block files
-		foreach (glob($sourcedir . '/WePortal.Block.*.php') as $file)
+		// Get the provider's files
+		foreach (glob($sourcedir . '/WePortal.ContentProvider.*.php') as $file)
 		{
 			require_once($file);
 
-			preg_match('/WePortal\.Block\.([a-zA-Z0-9\-\_]+).php/i', basename($file), $matches);
+			preg_match('/WePortal\.ContentProvider\.([a-zA-Z0-9\-\_]+).php/i', basename($file), $matches);
 			$class_name = 'WePBlock_' . str_replace('-', '_', $matches[1]);
 
-			// Store this block's information
-			$this->block_controllers[strtolower($matches[1])] = array(
+			// Store this content provider's information
+			$this->content_providers[strtolower($matches[1])] = array(
 				'id' => strtolower($matches[1]),
 				'name' => call_user_func(array($class_name, 'name')),
 				'parameters' => call_user_func(array($class_name, 'parameters')),
@@ -321,14 +356,14 @@ class WePortal
 	}
 
 	/**
-	 * Returns loaded block controllers
+	 * Returns loaded content providers
 	 *
 	 * @access public
 	 * @return array
 	 */
-	public function getBlockControllers()
+	public function getContentProviders()
 	{
-		return $this->block_controllers;
+		return $this->content_providers;
 	}
 
 	/**
@@ -350,10 +385,34 @@ class WePortal
 	 */
 	public function action()
 	{
-		if (!isset($_REQUEST['area']) || !isset(self::$areas[$_REQUEST['area']]))
+		if (!isset($_REQUEST['area']) || !isset($this->$areas[$_REQUEST['area']]))
 			redirectexit();
 
-		$this->{self::$areas[$_REQUEST['area']]}();
+		call_user_func($this->$areas[$_REQUEST['area']]);
+	}
+
+	/**
+	 * Initiates a content provider, loads the controllers and passes the parameters
+	 *
+	 * @access protected
+	 * @param array $info The information about theprovider, basically the ID, controller
+	 *						and parameters are useful.
+	 * @param WePHolder $holder The holder that is calling the 
+	 * @return WeBlock The instance of the newly rendered block
+	 */
+	protected function initiateContentProvider(array $info, WePHolder $holder)
+	{
+		// Load the controller
+		$controllers = $this->getContentProviders();
+		$controller = $controllers[$info['controller']];
+
+		if (empty($controller))
+			fatal_error('WePortal::initateContentProvider - Undefined controller : ' . $info['controller']);
+
+		$block_instance = new $controller['class']($info['parameters'], $holder, $this, $info['title'], $info['id'], $info['enabled']);
+
+		// Return the instance
+		return $block_instance;
 	}
 
 	/**
