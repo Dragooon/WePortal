@@ -56,7 +56,7 @@ class WePBar_right extends WePBar
 /**
  * Base bar class, later extended by specific positioned classes
  */
-abstract class WePBar
+abstract class WePBar implements WePHolder
 {
 	/**
 	 * Stores the blocks combined with member's block adjustments for this bar
@@ -69,9 +69,14 @@ abstract class WePBar
 	protected $portal = null;
 
 	/**
+	 * Holder type
+	 */
+	final protected static $holder_type = 'bar';
+
+	/**
 	 * Bar's ID, required to load blocks
 	 */
-	public static $bar = '';
+	protected static $bar = '';
 
 	/**
 	 * We need to have a render function defined but since every bar has different render
@@ -80,6 +85,32 @@ abstract class WePBar
 	 * The main purpose of this render function is to set the templates
 	 */
 	abstract public function render();
+
+	/**
+	 * Returns the holder's type
+	 *
+	 * @final
+	 * @static
+	 * @access public
+	 * @return string
+	 */
+	final public static function getHolderType()
+	{
+		return self::$holder_type;
+	}
+
+	/**
+	 * Returns the holder's ID, bar's position in this case
+	 *
+	 * @final
+	 * @static
+	 * @access public
+	 * @return string
+	 */
+	final public static function getHolderID()
+	{
+		return static::$bar;
+	}
 
 	/**
 	 * Constructor, loads this bar from the passed portal instance. Sets the blocks and
@@ -106,9 +137,10 @@ abstract class WePBar
 
 		// Now only keep the blocks needed for this bar
 		foreach ($blocks as $block => $info)
+		{
 			if ($info['bar'] != static::$bar)
 				unset($blocks[$block]);
-
+		}
 		// Sort by position
 		$position_index = array();
 		foreach ($blocks as $k => $v)
@@ -138,34 +170,16 @@ abstract class WePBar
 	protected function populateBlocks(array $blocks)
 	{
 		foreach ($blocks as $k => $block)
-			$blocks[$k] = $this->initiateBlock($block);
+		{
+			$blocks[$k] = $this->portal->initiateContentProvider($block, 'block');
+			if ($blocks[$k]->enabled())
+				$blocks[$k]->prepare();
+			else
+				unset($blocks[$k]);
+		}
 
 		// Now that we got proper block controllers set, we can finally do something about them
 		$this->blocks = $blocks;
-	}
-
-	/**
-	 * Initiates a blocks, loads the controllers and passes the parameters
-	 *
-	 * @access protected
-	 * @param array $info The information about the block, basically the ID, controller
-	 *						and parameters are useful.
-	 * @return WeBlock The instance of the newly rendered block
-	 */
-	protected function initiateBlock(array $block)
-	{
-		// Load the controller
-		$controllers = $this->portal->getBlockControllers();
-		$controller = $controllers[$block['controller']];
-
-		if (empty($controller))
-			fatal_error('WePBar::initiateBlock - Undefined controller : ' . $block['controller']);
-
-		$block_instance = new $controller['class']($block['parameters'], $this, $this->portal, $block['title'], $block['id'], $block['enabled']);
-		$block_instance->prepare();
-
-		// Return the instance
-		return $block_instance;
 	}
 }
 ?>
