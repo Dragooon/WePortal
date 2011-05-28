@@ -101,8 +101,8 @@ class WePortal
 		$this->loadBlocks();
 		$this->loadMemberBlocks();
 
-		// Load all the content holders
-		$this->loadContentHolder();
+		// Load all the content holders and run them
+		$this->loadContentHolders();
 
 		// Render the final little leftover templates
 		$this->render();
@@ -182,6 +182,37 @@ class WePortal
 		global $user_info;
 
 		$this->member_blocks = self::fetchMemberBlocks($user_info['id']);
+	}
+
+	/**
+	 * Loads all the content holders and initiates them
+	 *
+	 * @access protected
+	 * @return void
+	 */
+	protected function loadContentHolders()
+	{
+		global $sourcedir;
+
+		foreach (glob($sourcedir . '/WePortal.Holder.*.php') as $file)
+		{
+			require_once($file);
+
+			preg_match('/WePortal\.Holer\.([a-zA-Z0-9\-\_]+).php/i', basename($file), $matches);
+			$class_name = 'WePHolder_' . str_replace('-', '_', $matches[1]);
+
+			if (!class_exists($class_name))
+				continue;
+
+			$holder = new $class_name($this);
+			if (!($holder instanceof 'WeHolder'))
+				fatal_error('WePortal::loadContentHolders - Invalid holder : ' . $class_name);
+
+			if (!$holder->enabled())
+				continue;
+
+			$this->content_holders[] = $holder;
+		}
 	}
 
 	/**
@@ -320,11 +351,13 @@ class WePortal
 			preg_match('/WePortal\.ContentProvider\.([a-zA-Z0-9\-\_]+).php/i', basename($file), $matches);
 			$class_name = 'WePBlock_' . str_replace('-', '_', $matches[1]);
 
+			if (!class_exists($class_name))
+				continue;
+
 			// Store this content provider's information
 			$this->content_providers[strtolower($matches[1])] = array(
 				'id' => strtolower($matches[1]),
-				'name' => call_user_func(array($class_name, 'name')),
-				'parameters' => call_user_func(array($class_name, 'parameters')),
+				'name' => call_user_func(array($class_name, 'getName')),
 				'class' => $class_name,
 			);
 		}
@@ -394,13 +427,13 @@ class WePortal
 	/**
 	 * Initiates a content provider, loads the controllers and passes the parameters
 	 *
-	 * @access protected
-	 * @param array $info The information about theprovider, basically the ID, controller
+	 * @access public
+	 * @param array $info The information about the provider, basically the ID, controller
 	 *						and parameters are useful.
 	 * @param WePHolder $holder The holder that is calling the 
 	 * @return WeBlock The instance of the newly rendered block
 	 */
-	protected function initiateContentProvider(array $info, WePHolder $holder)
+	public function initiateContentProvider(array $info, WePHolder $holder)
 	{
 		// Load the controller
 		$controllers = $this->getContentProviders();
