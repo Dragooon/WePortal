@@ -32,4 +32,14 @@ interface WePHolder
 	 * Returns an ID associated to the holder, can be same as holder type if none exist
 	 */
 	final public static function getHolderID();
+
+	/**
+	 * You got to render a holder, correct?
+	 */
+	public function render();
+
+	/**
+	 * This is a check whether this holder is enabled or not
+	 */
+	public function enabled();
 }
