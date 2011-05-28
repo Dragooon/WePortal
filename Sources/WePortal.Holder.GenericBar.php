@@ -3,7 +3,7 @@
 * WePortal														*
 * © Shitiz "Dragooon" Garg										*
 *****************************************************************
-* WePortal.Bar.php - Contains classes for the bars				*
+* WePortal.Holder.GenericBar.php								*
 *****************************************************************
 * Users of this software are bound by the terms of the			*
 * WePortal license. You can view it in the license_wep.txt		*
@@ -12,51 +12,11 @@
 * For support and updates, don't come to me						*
 ****************************************************************/
 
-/**
- * Left bar class
- */
-class WePBar_left extends WePBar
-{
-	// We're the left bar!
-	public static $bar = 'left';
-
-	/**
-	 * Renders the sidebar, sets the templates and stuff
-	 */
-	public function render()
-	{
-		global $context;
-
-		$context['weportal_left_blocks'] = $this->blocks;
-		$context['template_layers'][] = 'weportal_bar_left';
-	}
-}
-
-/**
- * Right bar class
- */
-class WePBar_right extends WePBar
-{
-	// We're the left bar!
-	public static $bar = 'right';
-
-	/**
-	 * Renders the sidebar, sets the templates and stuff
-	 */
-	public function render()
-	{
-		global $context;
-
-		$context['weportal_right_blocks'] = $this->blocks;
-		$context['template_layers'][] = 'weportal_bar_right';
-	}
-}
-
 
 /**
  * Base bar class, later extended by specific positioned classes
  */
-abstract class WePBar implements WePHolder
+abstract class WePHolder_Bar implements WePHolder
 {
 	/**
 	 * Stores the blocks combined with member's block adjustments for this bar
@@ -85,6 +45,11 @@ abstract class WePBar implements WePHolder
 	 * The main purpose of this render function is to set the templates
 	 */
 	abstract public function render();
+
+	/**
+	 * This function checks whether this bar is enabled or not
+	 */
+	abstract public function enabled();
 
 	/**
 	 * Returns the holder's type
@@ -122,6 +87,11 @@ abstract class WePBar implements WePHolder
 	 */
 	public function __construct(WePortal $portal)
 	{
+		$this->portal = $portal;
+
+		if (!$this->prelim_enabled())
+			return false;
+
 		// Load the blocks appropiate for this bar
 		$blocks = $portal->getBlocks();
 		$member_blocks = $portal->getMemberBlocks();
@@ -153,7 +123,6 @@ abstract class WePBar implements WePHolder
 			$blocks[$block] = $_blocks[$block];
 		unset($position_index, $_blocks);
 			
-		$this->portal = $portal;
 		unset($member_blocks);
 
 		// Add the blocks to this bar
@@ -171,7 +140,7 @@ abstract class WePBar implements WePHolder
 	{
 		foreach ($blocks as $k => $block)
 		{
-			$blocks[$k] = $this->portal->initiateContentProvider($block, 'block');
+			$blocks[$k] = $this->portal->initiateContentProvider($block, $this);
 			if ($blocks[$k]->enabled())
 				$blocks[$k]->prepare();
 			else
