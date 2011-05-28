@@ -96,7 +96,7 @@ class WePortal
 		$this->loadContentProviders();
 
 		// Load the blocks themselves along with user block preference
-		// I know this is somewhat hard-coding it but it is to improve performance
+		// I know this is somewhat hard-coded it but it is to improve performance
 		// So that the bars don't perform multiple queries in order to fetch blocks
 		$this->loadBlocks();
 		$this->loadMemberBlocks();
