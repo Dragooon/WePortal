@@ -15,7 +15,7 @@
 /**
  * Our first block ever! A PHP block!
  */
-class WePBlock_PHP extends WePBlock
+class WePContentProvider_PHP extends WePContentProvider
 {
 	/**
 	 * Stores the evaluated output from the block's content
@@ -42,17 +42,17 @@ class WePBlock_PHP extends WePBlock
 	}
 
 	/**
-	 * Sets the parameters which are later used by the ACP
+	 * Sets the parameters which are used by ACP
 	 *
 	 * @static
-	 * @access protected
+	 * @access public
 	 * @return void
 	 */
-	protected static function set_parameters()
+	public static function get_parameters()
 	{
 		global $txt;
 
-		self::$input_parameters = array(
+		return array(
 			'content' => array(
 				'type' => 'textbox',
 				'subtype' => 'php',
