@@ -32,7 +32,7 @@ wesql::extend('packages');
 wedbPackages::create_table('{db_prefix}wep_contents',
 	array(
 		array('name' => 'id_object', 'type' => 'int', 'auto' => true),
-		array('name' => 'holder', 'type' => 'varcha', 'size' => 30, 'default' => 'block'),
+		array('name' => 'holder', 'type' => 'varchar', 'size' => 30, 'default' => 'block'),
 		array('name' => 'title', 'type' => 'varchar', 'size' => 150, 'default' => '-no title-'),
 		array('name' => 'controller', 'type' => 'varchar', 'size' => 50),
 		array('name' => 'bar', 'type' => 'varchar', 'size' => 25),
@@ -45,7 +45,7 @@ wedbPackages::create_table('{db_prefix}wep_contents',
 	array(
 		array(
 			'type' => 'primary',
-			'columns' => array('id_block'),
+			'columns' => array('id_object'),
 		),
 	),
 	array(),
