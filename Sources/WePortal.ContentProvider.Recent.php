@@ -15,7 +15,7 @@
 /**
  * Recent posts and topics block
  */
-class WePBlock_Recent extends WePBlock
+class WePBlock_Recent extends WePContentProvider
 {
 	/**
 	 * Stores the posts which are later rendered
@@ -71,13 +71,13 @@ class WePBlock_Recent extends WePBlock
 	}
 
 	/**
-	 * Sets the parameters which are later used by the ACP
+	 * Returns the parameters used by ACP
 	 *
 	 * @static
-	 * @access protected
+	 * @access public
 	 * @return void
 	 */
-	protected static function set_parameters()
+	public static function get_parameters()
 	{
 		global $txt;
 
