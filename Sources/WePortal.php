@@ -205,7 +205,7 @@ class WePortal
 				continue;
 
 			$holder = new $class_name($this);
-			if (!($holder instanceof 'WeHolder'))
+			if (!($holder instanceof WeHolder))
 				fatal_error('WePortal::loadContentHolders - Invalid holder : ' . $class_name);
 
 			if (!$holder->enabled())
@@ -226,7 +226,7 @@ class WePortal
 	 * @param int $object Any specific object to load
 	 * @return array The array containing blocks
 	 */
-	public static function fetchContentProviders(bool $enabled_check, string $holder = 'block', $groups, int $id_object)
+	public static function fetchContentProviders(bool $enabled_check, $holder = 'block', $groups, int $id_object)
 	{
 		$clauses = array();
 		if ($enabled_check)
@@ -241,7 +241,7 @@ class WePortal
 			SELECT c.id_object, c.holder, c.title, c.controller, c,bar, c.position, c.adjustable,
 					c.parameters, c.groups, c.enabled
 			FROM {db_prefix}wep_contents AS c' . (!empty($clauses) ? '
-			WHERE' . implode('
+			WHERE ' . implode('
 				AND ', $clauses)  : '') . '
 			ORDER BY b.position ASC',
 			array(

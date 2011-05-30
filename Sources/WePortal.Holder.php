@@ -26,12 +26,12 @@ interface WePHolder
 	 * This returns the holder's type, this function cannot be extended
 	 * since the parent holder controls everything
 	 */
-	final public static function getHolderType();
+	public static function getHolderType();
 
 	/**
 	 * Returns an ID associated to the holder, can be same as holder type if none exist
 	 */
-	final public static function getHolderID();
+	public static function getHolderID();
 
 	/**
 	 * You got to render a holder, correct?
