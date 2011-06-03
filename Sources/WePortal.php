@@ -102,12 +102,6 @@ class WePortal
 		// Load the content controllers
 		$this->loadContentProviders();
 
-		// Load the blocks themselves along with user block preference
-		// I know this is somewhat hard-coded it but it is to improve performance
-		// So that the bars don't perform multiple queries in order to fetch blocks
-		$this->loadBlocks();
-		$this->loadMemberBlocks();
-
 		// Load all the content holders and run them
 		$this->loadContentHolders();
 
@@ -132,13 +126,13 @@ class WePortal
 	}
 
 	/**
-	 * Removes an action if registered
+	 * Removes an area if registered
 	 *
 	 * @access public
 	 * @param string $area The area to unregister
 	 * @return void
 	 */
-	public function unregisterAction(string $area)
+	public function unregisterArea(string $area)
 	{
 		if (isset($this->areas[$area]))
 			unset($this->areas[$area]);
@@ -166,32 +160,6 @@ class WePortal
 	}
 
 	/**
-	 * Loads all the blocks viewable by this user
-	 *
-	 * @access protected
-	 * @return void
-	 */
-	protected function loadBlocks()
-	{
-		global $user_info;
-
-		$this->blocks = self::fetchContentProviders(false, 'block', $user_info['groups']);
-	}
-
-	/**
-	 * Loads this user's blocks customizations
-	 *
-	 * @access protected
-	 * @return void
-	 */
-	protected function loadMemberBlocks()
-	{
-		global $user_info;
-
-		$this->member_blocks = self::fetchMemberBlocks($user_info['id']);
-	}
-
-	/**
 	 * Loads all the content holders and initiates them
 	 *
 	 * @access protected
@@ -203,6 +171,7 @@ class WePortal
 
         // Poor hack :(
         loadSource('WePortal.Holder.GenericBar');
+
 		foreach (glob($sourcedir . '/WePortal.Holder.*.php') as $file)
 		{
 			require_once($file);
@@ -235,7 +204,7 @@ class WePortal
 	 * @param int $object Any specific object to load
 	 * @return array The array containing blocks
 	 */
-	public static function fetchContentProviders(bool $enabled_check, $holder = 'block', $groups, int $id_object)
+	public static function fetchContentProviders(bool $enabled_check, $holder = 'bar', $groups, int $id_object)
 	{
 		$clauses = array();
 		if ($enabled_check)
@@ -247,12 +216,12 @@ class WePortal
 
 		// Get the blocks from the database
 		$request = wesql::query('
-			SELECT c.id_object, c.holder, c.title, c.controller, c,bar, c.position, c.adjustable,
+			SELECT c.id_object, c.holder, c.title, c.controller, c.bar, c.position, c.adjustable,
 					c.parameters, c.groups, c.enabled
 			FROM {db_prefix}wep_contents AS c' . (!empty($clauses) ? '
 			WHERE ' . implode('
 				AND ', $clauses)  : '') . '
-			ORDER BY b.position ASC',
+			ORDER BY c.position ASC',
 			array(
 				'holder' => $holder,
 			)
@@ -282,46 +251,6 @@ class WePortal
 
 		// Return the result set
 		return $content_providers;
-	}
-
-	/**
-	 * Fetches the member's block preferences from the database
-	 *
-	 * @static
-	 * @access public
-	 * @param int $id_member The ID of the member to fetch
-	 * @return array The list of blocks with the adjusted parameters
-	 */
-	public static function fetchMemberBlocks(int $id_member)
-	{
-		// Empty member? Die hard.
-		if (empty($id_member))
-			return false;
-
-		// Fetch the member's blocks
-		$request = wesql::query('
-			SELECT ba.id_member, ba.id_block, ba.bar, ba.position, ba.enabled
-			FROM {db_prefix}wep_block_adjustments AS ba
-			WHERE id_member = {int:member}
-			ORDER BY ba.position',
-			array(
-				'member' => $id_member,
-			)
-		);
-		$member_blocks = array();
-		while ($row = wesql::fetch_assoc($request))
-		{
-			$member_blocks[$row['id_block']] = array(
-				'block' => $row['id_block'],
-				'member' => $row['id_member'],
-				'bar' => $row['bar'],
-				'position' => $row['position'],
-				'enabled' => (bool) $row['enabled'],
-			);
-		}
-		wesql::free_result($request);
-
-		return $member_blocks;
 	}
 
 	/**
@@ -455,110 +384,5 @@ class WePortal
 
 		// Return the instance
 		return $block_instance;
-	}
-
-	/**
-	 * Handles AJAX call for updating the user's blocks
-	 *
-	 * @access public
-	 * @return void
-	 */
-	public function blockupdate()
-	{
-		global $context, $txt;
-
-		// Guest? Bah Humbug!
-		if ($context['user']['is_guest'] || (empty($_POST['bars']) && empty($_POST['blocks_disabled']) && empty($_POST['blocks_enabled'])))
-			redirectexit();
-
-		// Flush all the current blocks
-		if (!empty($_POST['bars']))
-		{
-			wesql::query('
-				DELETE FROM {db_prefix}wep_block_adjustments
-				WHERE id_member = {int:member}',
-				array(
-					'member' => (int) $context['user']['id'],
-				)
-			);
-
-			// Let us update the blocks
-			foreach ($_POST['bars'] as $bar => $blocks)
-				foreach ($blocks as $pos => $id_block)
-					wesql::query('
-						INSERT IGNORE INTO {db_prefix}wep_block_adjustments
-							(id_block, id_member, bar, position, enabled)
-						VALUES
-							({int:block}, {int:user}, {string:bar}, {int:position}, {string:enabled})',
-						array(
-							'block' => (int) $id_block,
-							'user' => $context['user']['id'],
-							'bar' => $bar,
-							'position' => (int) $pos,
-							'enabled' => isset($this->member_blocks[(int) $id_block]) ? ($this->member_blocks[(int) $id_block]['enabled'] ? '1' : '0') : ($this->blocks[(int) $id_block]['enabled'] ? '1' : '0'),
-						)
-					);
-		}
-
-		if (!empty($_POST['blocks_disabled']))
-			foreach ($_POST['blocks_disabled'] as $disabled_block)
-			{
-				wesql::query('
-					UPDATE {db_prefix}wep_block_adjustments
-					SET enabled = {string:disabled}
-					WHERE id_block  = {int:block}
-						AND id_member = {int:member}',
-					array(
-						'disabled' => '0',
-						'block' => (int) $disabled_block,
-						'member' => $context['user']['id'],
-					)
-				);
-				if (wesql::affected_rows() <= 0)
-					wesql::query('
-						INSERT IGNORE INTO {db_prefix}wep_block_adjustments
-							(id_block, id_member, bar, position, enabled)
-						VALUES
-							({int:block}, {int:user}, {string:bar}, {int:position}, {string:enabled})',
-						array(
-							'block' => (int) $disabled_block,
-							'user' => $context['user']['id'],
-							'bar' => $this->blocks[$disabled_block]['bar'],
-							'position' => $this->blocks[$disabled_block]['position'],
-							'enabled' => '0',
-						)
-					);
-			}
-
-		if (!empty($_POST['blocks_enabled']))
-			foreach ($_POST['blocks_enabled'] as $enabled_block)
-			{
-				wesql::query('
-					UPDATE {db_prefix}wep_block_adjustments
-					SET enabled = {string:enabled}
-					WHERE id_block = {int:block}
-						AND id_member = {int:member}',
-					array(
-						'enabled' => '1',
-						'block' => (int) $enabled_block,
-						'member' => $context['user']['id'],
-					)
-				);
-				if (wesql::affected_rows() == 0)
-					wesql::query('
-						INSERT IGNORE INTO {db_prefix}wep_block_adjustments
-							(id_block, id_member, bar, position, enabled)
-						VALUES
-							({int:block}, {int:user}, {string:bar}, {int:position}, {string:enabled})',
-						array(
-							'block' => (int) $enabled_block,
-							'user' => $context['user']['id'],
-							'bar' => $this->blocks[$enabled_block]['bar'],
-							'position' => $this->blocks[$enabled_block]['position'],
-							'enabled' => '1',
-						)
-					);
-			}
-		exit;
 	}
 }	
