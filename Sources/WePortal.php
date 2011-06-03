@@ -201,6 +201,8 @@ class WePortal
 	{
 		global $sourcedir;
 
+        // Poor hack :(
+        loadSource('WePortal.Holder.GenericBar');
 		foreach (glob($sourcedir . '/WePortal.Holder.*.php') as $file)
 		{
 			require_once($file);
