@@ -116,14 +116,14 @@ class WePortal
 	}
 
 	/**
-	 * Registers an action, meant to be used only be a holder
+	 * Registers an area, meant to be used only be a holder
 	 *
 	 * @access public
 	 * @param string $area The area to register
 	 * @param callback $callback The callback to perform
 	 * @return void
 	 */
-	public function registerAction(string $area, $callback)
+	public function registerArea(string $area, $callback)
 	{
 		if (!is_callable($callback) || empty($area))
 			return false;
