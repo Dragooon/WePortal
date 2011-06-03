@@ -32,7 +32,7 @@ wesql::extend('packages');
 wedbPackages::create_table('{db_prefix}wep_contents',
 	array(
 		array('name' => 'id_object', 'type' => 'int', 'auto' => true),
-		array('name' => 'holder', 'type' => 'varchar', 'size' => 30, 'default' => 'block'),
+		array('name' => 'holder', 'type' => 'varchar', 'size' => 30, 'default' => 'bar'),
 		array('name' => 'title', 'type' => 'varchar', 'size' => 150, 'default' => '-no title-'),
 		array('name' => 'controller', 'type' => 'varchar', 'size' => 50),
 		array('name' => 'bar', 'type' => 'varchar', 'size' => 25),
@@ -70,4 +70,8 @@ wedbPackages::create_table('{db_prefix}wep_block_adjustments',
 	array(),
 	'update'
 );
+
+// Integrate the hooks
+add_hook('behavior', 'weportal_hook_behavior', 'WePortal');
+add_hook('actions', 'weportal_hook_actions', 'WePortal');
 ?>

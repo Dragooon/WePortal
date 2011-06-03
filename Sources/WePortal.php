@@ -13,6 +13,13 @@
 * For support and updates, don't come to me						*
 ****************************************************************/
 
+function weportal_hook_actions()
+{
+    global $action_list;
+
+    $action_list['portal'] = array('WePortal.php', 'WePortalAction');
+}
+
 // Stupid wrapper
 function WePortalAction()
 {
