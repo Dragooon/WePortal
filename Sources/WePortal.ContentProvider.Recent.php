@@ -15,7 +15,7 @@
 /**
  * Recent posts and topics block
  */
-class WePBlock_Recent extends WePContentProvider
+class WePContentProvider_Recent extends WePContentProvider
 {
 	/**
 	 * Stores the posts which are later rendered
@@ -75,13 +75,13 @@ class WePBlock_Recent extends WePContentProvider
 	 *
 	 * @static
 	 * @access public
-	 * @return void
+	 * @return array
 	 */
 	public static function get_parameters()
 	{
 		global $txt;
 
-		self::$input_parameters = array(
+		return array(
 			'type' => array(
 				'type' => 'select',
 				'label' => $txt['wep_type'],

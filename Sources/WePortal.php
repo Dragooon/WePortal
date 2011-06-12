@@ -176,14 +176,14 @@ class WePortal
 		{
 			require_once($file);
 
-			preg_match('/WePortal\.Holer\.([a-zA-Z0-9\-\_]+).php/i', basename($file), $matches);
+			preg_match('/WePortal\.Holder\.([a-zA-Z0-9\-\_]+).php/i', basename($file), $matches);
 			$class_name = 'WePHolder_' . str_replace('-', '_', $matches[1]);
 
 			if (!class_exists($class_name))
 				continue;
 
 			$holder = new $class_name($this);
-			if (!($holder instanceof WeHolder))
+			if (!($holder instanceof WePHolder))
 				fatal_error('WePortal::loadContentHolders - Invalid holder : ' . $class_name);
 
 			if (!$holder->enabled())
@@ -206,9 +206,11 @@ class WePortal
 	 */
 	public static function fetchContentProviders(bool $enabled_check, $holder = 'bar', $groups, int $id_object)
 	{
+		global $user_info;
+
 		$clauses = array();
 		if ($enabled_check)
-			$clauses[] = 'c.enabled = 1';
+			$clauses[] = 'c.enabled = {string:enabled}';
 		if (!empty($holder))
 			$clauses[] = 'c.holder = {string:holder}';
 		if (!empty($id_object))
@@ -223,6 +225,7 @@ class WePortal
 				AND ', $clauses)  : '') . '
 			ORDER BY c.position ASC',
 			array(
+				'enabled' => '1',
 				'holder' => $holder,
 			)
 		);
@@ -287,7 +290,7 @@ class WePortal
 			require_once($file);
 
 			preg_match('/WePortal\.ContentProvider\.([a-zA-Z0-9\-\_]+).php/i', basename($file), $matches);
-			$class_name = 'WePBlock_' . str_replace('-', '_', $matches[1]);
+			$class_name = 'WePContentProvider_' . str_replace('-', '_', $matches[1]);
 
 			if (!class_exists($class_name))
 				continue;
@@ -375,7 +378,7 @@ class WePortal
 	{
 		// Load the controller
 		$controllers = $this->getContentProviders();
-		$controller = $controllers[$info['controller']];
+		$controller = $controllers[strtolower($info['controller'])];
 
 		if (empty($controller))
 			fatal_error('WePortal::initateContentProvider - Undefined controller : ' . $info['controller']);
