@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<addon id="Dragooon:WePortal">
+  <name>WePortal</name>
+  <author email="mail@dragooon.net" url="http://smf-media.com/">Shitiz "Dragooon" Garg</author>
+  <description>Basic Portal fo Wedge</description>
+  <version>0.1</version>
+
+  <min-versions>
+    <php>5.3.0</php>
+  </min-versions>
+  
+  <hooks>
+    <function point="load_theme" function="WePortal::instance" filename="$addondir/WePortal" />
+    <function point="actions" function="WePortal::hook_actions" filename="$addondir/WePortal" />
+    
+    <!-- Default sub-addons, Page and Bar holder -->
+    <function point="weportal_holders" function="weportal_holder_bar_left_hook" filename="$addondir/WePortal.Holder.Bar_left" />
+    <function point="weportal_holders" function="weportal_holder_bar_right_hook" filename="$addondir/WePortal.Holder.Bar_right" />
+    <function point="weportal_holders" function="weportal_holder_page" filename="$addondir/WePortal.Holder.Page" />
+    
+    <!-- Default sub-addons, PHP and Recent content provider -->
+    <function point="weportal_providers" function="weportal_provider_php_hook" filename="$addondir/WePortal.ContentProvider.PHP" />
+    <function point="weportal_providers" function="weportal_provider_recent_hook" filename="$addondir/WePortal.ContentProvider.Recent" />
+    
+    <provides>
+      <!--
+        Hook for adding a content holder, the callback should just append it's name to the passed array
+        
+        Params passed
+          &$content_holders - Current Content holders
+      -->
+      <hook type="function">weportal_holders</hook>
+      <!--
+        Hook for adding a content provider, the callback should just append it's name to the passed array
+        
+        Params passed
+          &$content_providers - Current Content providers
+      -->
+      <hook type="function">weportal_providers</hook>
+    </provides>
+  </hooks>
+
+  <database>
+    <tables>
+      <table if-exists="update" name="{db_prefix}wep_contents">
+        <columns>
+          <column name="id_object" type="int" auto="true" />
+          <column name="holder" type="varchar" size="30" default="bar" />
+          <column name="title" type="varchar" size="150" default="-no title-" />
+          <column name="controller" type="varchar" size="50" />
+          <column name="position" type="int" default="0" />
+          <column name="adjustable" type="tinyint" default="1" />
+          <column name="parameters" type="text" default="" />
+          <column name="enabled" type="tinyint" default="0" />
+          <column name="groups" type="text" default="" />
+        </columns>
+        <index type="primary">
+          <field>id_object</field>
+        </index>
+      </table>
+      
+      <!-- Technically, this table is a part of "Bar" holder sub add-on -->
+      <table if-exists="update" name="{db_prefix}wep_block_adjustments">
+        <columns>
+          <column name="id_member" type="int" default="0" />
+          <column name="id_block" type="int" default="0" />
+          <column name="bar" type="varchar" size="30" default="" />
+          <column name="position" type="int" default="0" />
+          <column name="enabled" type="tinyint" default="0" />
+        </columns>
+        <index type="primary">
+          <field>id_member</field>
+          <field>id_block</field>
+        </index>
+      </table>
+    </tables>
+  </database>
+</addon>
