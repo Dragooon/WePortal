@@ -1,5 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<addon id="Dragooon:WePortal">
+<?xml version="1.0" encoding="utf-8"?>
+<plugin id="Dragooon:WePortal">
   <name>WePortal</name>
   <author email="mail@dragooon.net" url="http://smf-media.com/">Shitiz "Dragooon" Garg</author>
   <description>Basic Portal fo Wedge</description>
@@ -8,31 +8,31 @@
   <min-versions>
     <php>5.3.0</php>
   </min-versions>
-  
+
   <hooks>
-    <function point="load_theme" function="WePortal::instance" filename="$addondir/WePortal" />
-    <function point="actions" function="WePortal::hook_actions" filename="$addondir/WePortal" />
-    
+    <function point="load_theme" function="WePortal::instance" filename="$plugindir/WePortal" />
+    <function point="actions" function="WePortal::hook_actions" filename="$plugindir/WePortal" />
+
     <!-- Default sub-addons, Page and Bar holder -->
-    <function point="weportal_holders" function="weportal_holder_bar_left_hook" filename="$addondir/WePortal.Holder.Bar_left" />
-    <function point="weportal_holders" function="weportal_holder_bar_right_hook" filename="$addondir/WePortal.Holder.Bar_right" />
-    <function point="weportal_holders" function="weportal_holder_page" filename="$addondir/WePortal.Holder.Page" />
-    
+    <function point="weportal_holders" function="weportal_holder_bar_left_hook" filename="$plugindir/WePortal.Holder.Bar_left" />
+    <function point="weportal_holders" function="weportal_holder_bar_right_hook" filename="$plugindir/WePortal.Holder.Bar_right" />
+    <function point="weportal_holders" function="weportal_holder_page" filename="$plugindir/WePortal.Holder.Page" />
+
     <!-- Default sub-addons, PHP and Recent content provider -->
-    <function point="weportal_providers" function="weportal_provider_php_hook" filename="$addondir/WePortal.ContentProvider.PHP" />
-    <function point="weportal_providers" function="weportal_provider_recent_hook" filename="$addondir/WePortal.ContentProvider.Recent" />
-    
+    <function point="weportal_providers" function="weportal_provider_php_hook" filename="$plugindir/WePortal.ContentProvider.PHP" />
+    <function point="weportal_providers" function="weportal_provider_recent_hook" filename="$plugindir/WePortal.ContentProvider.Recent" />
+
     <provides>
       <!--
         Hook for adding a content holder, the callback should just append it's name to the passed array
-        
+
         Params passed
           &$content_holders - Current Content holders
       -->
       <hook type="function">weportal_holders</hook>
       <!--
         Hook for adding a content provider, the callback should just append it's name to the passed array
-        
+
         Params passed
           &$content_providers - Current Content providers
       -->
@@ -58,7 +58,7 @@
           <field>id_object</field>
         </index>
       </table>
-      
+
       <!-- Technically, this table is a part of "Bar" holder sub add-on -->
       <table if-exists="update" name="{db_prefix}wep_block_adjustments">
         <columns>
@@ -75,4 +75,4 @@
       </table>
     </tables>
   </database>
-</addon>
+</plugin>
