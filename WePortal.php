@@ -200,16 +200,14 @@ class WePortal
 	 */
 	public function render()
 	{
-		global $context;
-
 		// Nuke the default sidebar
-		$context['skeleton_array'] = removeValueByKey($context['skeleton_array'], 'sidebar_wrap');
+		wetem::get('sidebar_wrap')->remove();
 
 		// Load the templates and languages
 		loadPluginLanguage('Dragooon:WePortal', 'languages/WePortal');
 		loadPluginTemplate('Dragooon:WePortal', 'templates/WePortal');
-		add_Plugin_css_file('Dragooon:WePortal', 'templates/styles/portal', true);
-		add_Plugin_js_file('Dragooon:WePortal', 'templates/scripts/portal.js', true);
+		add_plugin_css_file('Dragooon:WePortal', 'templates/styles/portal', true);
+		add_plugin_js_file('Dragooon:WePortal', 'templates/scripts/portal.js', true);
 
 		// Render all the content holders
 		foreach ($this->content_holders as $holder)
