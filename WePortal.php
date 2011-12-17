@@ -96,8 +96,40 @@ class WePortal
 		$action_list['portal'] = array('Subs.php', 'WePortalAction');
 	}
 
-	/**
-	 * Constructor, initialises the portal.
+    /**
+     * "admin_areas" hook callback, adds WePortal admin areas into the menu
+     *
+     * @static
+     * @access public
+     * @return void
+     */
+    public static function hook_admin_areas()
+    {
+        global $admin_areas;
+
+        // This isn't a shameless copy of the instruction in Admin.php, I just want to
+        // add it after the second menu
+        array_merge(array_splice($admin_areas, 0, 2), array(
+            'weportal' => array(
+                'title' => $txt['weportal'],
+                'permission' => array('manage_weportal'),
+                'areas' => array(
+                    'providers' => array(
+                        'title' => $txt['wep_providers'],
+                        'file' => array('Dragooon:WePortal', 'WePortal::admin'),
+                        'subsections' => array(
+                            'add' => array($txt['wep_add_provider']),
+                            'edit' => array($txt['wep_edit_provider']),
+                            'delete' => array($txt['wep_delete_provider']),
+                        ),
+                    ),
+                ),
+            ),
+        ), $admin_areas);
+    }
+
+    /**
+	 * Constructor, initialises the portal, also responds to load_theme hook call
 	 *
 	 * @access protected
 	 * @return void
@@ -170,7 +202,7 @@ class WePortal
 	{
 		global $context;
 
-		// Disable the default sidebar
+		// Nuke the default sidebar
 		$context['skeleton_array'] = removeValueByKey($context['skeleton_array'], 'sidebar_wrap');
 
 		// Load the templates and languages
