@@ -11,9 +11,9 @@
 
   <hooks>
     <function point="load_theme" function="WePortal::instance" filename="$plugindir/WePortal" />
-    <function point="actions" function="WePortal::hook_actions" filename="$plugindir/WePortal" />
+    <function point="action_list" function="WePortal::hook_actions" filename="$plugindir/WePortal" />
     <function point="admin_areas" function="WePortal::hook_admin_areas" filename="$plugindir/WePortal" />
-    
+
     <!-- Default sub-addons, Page and Bar holder -->
     <function point="weportal_holders" function="weportal_holder_bar_left_hook" filename="$plugindir/WePortal.Holder.Bar_left" />
     <function point="weportal_holders" function="weportal_holder_bar_right_hook" filename="$plugindir/WePortal.Holder.Bar_right" />
