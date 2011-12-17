@@ -144,8 +144,8 @@ class WePortal
 		require_once($boarddir . '/SSI.php');
 
 		// Load the essential files
-		loadAddonSource('Dragooon:WePortal', 'WePortal.ContentProvider');
-		loadAddonSource('Dragooon:WePortal', 'WePortal.Holder');
+		loadPluginSource('Dragooon:WePortal', 'WePortal.ContentProvider');
+		loadPluginSource('Dragooon:WePortal', 'WePortal.Holder');
 
 		// Load the settings
 		$this->loadSettings();
@@ -206,10 +206,10 @@ class WePortal
 		$context['skeleton_array'] = removeValueByKey($context['skeleton_array'], 'sidebar_wrap');
 
 		// Load the templates and languages
-		loadAddonLanguage('Dragooon:WePortal', 'languages/WePortal');
-		loadAddonTemplate('Dragooon:WePortal', 'templates/WePortal');
-		add_addon_css_file('Dragooon:WePortal', 'templates/styles/portal', true);
-		add_addon_js_file('Dragooon:WePortal', 'templates/scripts/portal.js', true);
+		loadPluginLanguage('Dragooon:WePortal', 'languages/WePortal');
+		loadPluginTemplate('Dragooon:WePortal', 'templates/WePortal');
+		add_Plugin_css_file('Dragooon:WePortal', 'templates/styles/portal', true);
+		add_Plugin_js_file('Dragooon:WePortal', 'templates/scripts/portal.js', true);
 
 		// Render all the content holders
 		foreach ($this->content_holders as $holder)
@@ -225,7 +225,7 @@ class WePortal
 	protected function loadContentHolders()
 	{
         // Poor hack :(
-        loadAddonSource('Dragooon:WePortal', 'WePortal.Holder.GenericBar');
+        loadPluginSource('Dragooon:WePortal', 'WePortal.Holder.GenericBar');
 
 		$holders = array();
 
