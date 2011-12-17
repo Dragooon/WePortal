@@ -59,13 +59,11 @@ abstract class WePHolder_Bar implements WePHolder
 	 *
 	 * The main purpose of this render function is to set the templates
 	 */
-	abstract public function render();
 
 	/**
-	 * This function checks whether this bar is enabled or not
+	 * We also need to have an enabled function
 	 */
-	abstract public function enabled();
-    
+
 	/**
 	 * Returns the holder's type
 	 *
