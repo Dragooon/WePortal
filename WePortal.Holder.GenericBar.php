@@ -200,6 +200,18 @@ abstract class WePHolder_Bar implements WePHolder
 		$this->populateBlocks($blocks);
 	}
 
+    /**
+     * Returns the per provider parameters
+     *
+     * @static
+     * @access public
+     * @return array
+     */
+    public static function getProviderParameters()
+    {
+        return array();
+    }
+    
 	/**
 	 * Takes a list of block, initiates them and then adds them to the bar
 	 *

@@ -205,6 +205,39 @@ function template_weportal_admin_providers_add_step2()
                         <label><span>', $param['label'], '</span></label>
                     </dt>
                     <dd>';
+        template_weportal_field('provider_' . $key, $param);
+        echo '
+                    </dd>';
+    }
+
+    echo '
+               </dl>
+               <hr />
+               <dl class="settings">';
+    foreach ($context['wep_holder_params'] as $key => $param)
+    {
+        echo '
+                    <dt>
+                        <label><span>', $param['label'], '</span></label>
+                    </dt>
+                    <dd>';
+        template_weportal_field('provider_' . $key, $param);
+        echo '
+                    </dd>';
+    }
+
+    echo '
+               </dl>
+               <hr />
+               <div class="righttext">
+                    <input type="submit" name="save" value="', $txt['submit'], '" class="submit" />
+               </div>
+            </div>
+        </form>';
+}
+
+function template_weportal_field($key, $param)
+{
         switch ($param['type'])
         {
             case 'text':
@@ -225,16 +258,5 @@ function template_weportal_admin_providers_add_step2()
                         </select>';
                 break;
         }
-        echo '
-                    </dd>';
-    }
-    echo '
-               </dl>
-               <hr />
-               <div class="righttext">
-                    <input type="submit" name="save" value="', $txt['submit'], '" class="submit" />
-               </div>
-            </div>
-        </form>';
-}
+ }
 ?>

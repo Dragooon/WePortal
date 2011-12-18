@@ -35,6 +35,7 @@ abstract class WePContentProvider
 	protected $id_instance;
 	protected $title;
 	protected $parameters; // The parameters as passed
+    protected $holder_parameters;
 	protected $holder;
 	protected $portal;
 	protected $enabled;
@@ -74,7 +75,8 @@ abstract class WePContentProvider
 	public function __construct(array $parameters, WePHolder $holder, WePortal $portal, $title, $id, $enabled, array $info)
 	{
 		// Set the parameters as required by this block
-		$this->parameters = $parameters;
+		$this->parameters = $parameters['provider'];
+        $this->holder_parameters = $parameters['holder'];
 
 		// Set the bar and portal for future use(If any)
 		$this->holder = $holder;
@@ -89,6 +91,17 @@ abstract class WePContentProvider
 		$this->info = $info;
 	}
 
+    /**
+     * Return the holder parameters
+     *
+     * @access public
+     * @return array
+     */
+    public function getHolderParameters()
+    {
+        return $this->holder_parameters;
+    }
+    
 	/**
 	 * Static function, returns the name of this block's controller for acp purposes
 	 *

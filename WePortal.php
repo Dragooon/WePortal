@@ -547,7 +547,7 @@ class WePortal
 
         $provider_params = array();
         if (!empty($provider))
-            $providerparams = call_user_func(array($this->content_providers[$provider]['class'], 'getParameters'));
+            $provider_params = call_user_func(array($this->content_providers[$provider]['class'], 'getParameters'));
 
         $holder_params = array();
         if (!empty($holder))
@@ -561,7 +561,7 @@ class WePortal
                 $save_params['provider'][$k] = $_POST['provider_' . $k];
             foreach ($holder_params as $k => $param)
                 $save_params['holder'][$k] = $_POST['holder_' . $k];
-            
+
             $_POST['title'] = htmlspecialchars($_POST['title']);
             $save_groups = array();
             foreach ($_POST['groups'] as $group)
@@ -582,7 +582,8 @@ class WePortal
         {
             $context['wep_holders'] = $holders;
             $context['wep_providers'] = $providers;
-            $context['wep_params'] = $params;
+            $context['wep_params'] = $provider_params;
+            $context['wep_holder_params'] = $holder_params;
             $context['wep_holder'] = $holder;
             $context['wep_provider'] = $provider;
             $context['wep_groups'] = $groups;
