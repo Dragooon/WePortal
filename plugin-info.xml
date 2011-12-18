@@ -45,7 +45,7 @@
     <tables>
       <table if-exists="update" name="{db_prefix}wep_contents">
         <columns>
-          <column name="id_object" type="int" auto="true" />
+          <column name="id_object" type="int" autoincrement="yes" />
           <column name="holder" type="varchar" size="30" default="bar" />
           <column name="title" type="varchar" size="150" default="-no title-" />
           <column name="controller" type="varchar" size="50" />
