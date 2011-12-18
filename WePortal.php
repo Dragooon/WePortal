@@ -219,7 +219,8 @@ class WePortal
 
 		// Render all the content holders
 		foreach ($this->content_holders as $holder)
-			$holder->render();
+            //if ($holder->enabled())
+                $holder->render();
 	}
 
 	/**
@@ -248,10 +249,7 @@ class WePortal
 			if (!($holder instanceof WePHolder))
 				fatal_error('WePortal::loadContentHolders - Invalid holder : ' . $class_name);
 
-			if (!$holder->enabled())
-				continue;
-
-			$this->content_holders[] = $holder;
+			$this->content_holders[$holder->getHolderID()] = $holder;
 		}
 	}
 
