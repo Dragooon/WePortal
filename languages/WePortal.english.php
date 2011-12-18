@@ -24,7 +24,31 @@
 
 $txt['weportal'] = 'WePortal';
 $txt['wep_providers'] = 'Content providers';
+$txt['wep_providers_list'] = 'List providers';
 $txt['wep_add_provider'] = 'Add provider';
 $txt['wep_edit_provider'] = 'Edit provider';
 $txt['wep_delete_provider'] = 'Delete provider';
+$txt['wep_provider_add'] = 'Add content provider';
+$txt['wep_providers_desc'] = 'This area allows you to add/edit/remove content providers, a content proivder is basically an entity of a type(for example, block or page)';
+$txt['submit'] = 'Submit';
+$txt['wep_holder'] = 'Holder';
+$txt['wep_provider'] = 'Provider';
+$txt['wep_holder_bar_left'] = 'Left bar';
+$txt['wep_holder_bar_right'] = 'Right bar';
+$txt['wep_provider_php'] = 'PHP';
+$txt['wep_provider_recent'] = 'Recent';
+$txt['wep_select_provider_holder'] = 'Step 1 : Select provider and holder';
+$txt['wep_select_provider_parameters'] = 'Provider settings';
+$txt['wep_title'] = 'Title';
+$txt['wep_groups'] = 'Groups';
+$txt['wep_adjustable'] = 'Adjustable';
+$txt['wep_php_code'] = 'PHP Code';
+$txt['wep_id'] = 'ID';
+$txt['wep_actions'] = 'Actions';
+$txt['wep_type'] = 'Type';
+$txt['wep_recent_posts'] = 'Recent posts';
+$txt['wep_recent_topics'] = 'Recent topics';
+$txt['wep_recent_limit'] = 'Limit';
+$txt['wep_enable'] = 'Enable';
+$txt['wep_disable'] = 'Disable';
 ?>
