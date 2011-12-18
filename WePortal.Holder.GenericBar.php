@@ -50,8 +50,8 @@ abstract class WePHolder_Bar implements WePHolder
     /**
      * Stores the cached blocks and member blocks
      */
-    protected $blocks_cache = null;
-    protected $member_block_cache = null;
+    protected static $blocks_cache = null;
+    protected static $member_block_cache = null;
 
 	/**
 	 * We need to have a render function defined but since every bar has different render
@@ -93,34 +93,41 @@ abstract class WePHolder_Bar implements WePHolder
     /**
      * Loads all the blocks
      *
+     * @static
      * @access public
      * @return array
      */
-    public function getBlocks()
+    public static function getBlocks()
     {
         global $user_info;
 
-        if ($this->blocks_cache == null)
-            $this->blocks_cache = WePortal::fetchContentProviders(true, 'bar_' . static::$bar, $user_info['groups']);
+        if (self::$blocks_cache == null)
+        {
+            self::$blocks_cache = WePortal::fetchContentProviders(false, null, $user_info['groups']);
+            foreach (self::$blocks_cache as $k => $v)
+                if (substr($v['holder'], 0, 3) != 'bar')
+                    unset(self::$blocks_cache[$k]);
+        }
 
-        return $this->blocks_cache;
+        return self::$blocks_cache;
     }
 
     /**
 	 * Fetches the member's block preferences from the database
 	 *
+     * @static
 	 * @access public
 	 * @param int $id_member The ID of the member to fetch
 	 * @return array The list of blocks with the adjusted parameters
      */
-    public function getMemberBlocks($id_member)
+    public static function getMemberBlocks($id_member)
     {
 		// Empty member? Die hard.
 		if (empty($id_member))
 			return false;
 
-        if (is_array($this->member_block_cache) && isset($this->member_block_cache[$id_member]))
-            return $this->member_block_cache[$id_member];
+        if (is_array(self::$member_block_cache) && isset(self::$member_block_cache[$id_member]))
+            return self::$member_block_cache[$id_member];
 
 		// Fetch the member's blocks
 		$request = wesql::query('
@@ -129,6 +136,7 @@ abstract class WePHolder_Bar implements WePHolder
 			WHERE id_member = {int:member}
 			ORDER BY ba.position',
 			array(
+                'holder' => 'bar_' . static::$bar,
 				'member' => $id_member,
 			)
 		);
@@ -138,14 +146,14 @@ abstract class WePHolder_Bar implements WePHolder
 			$member_blocks[$row['id_block']] = array(
 				'block' => $row['id_block'],
 				'member' => $row['id_member'],
-				'bar' => $row['bar'],
+				'holder' => $row['bar'],
 				'position' => $row['position'],
 				'enabled' => (bool) $row['enabled'],
 			);
 		}
 		wesql::free_result($request);
 
-		$this->member_block_cache[$id_member] = $member_blocks;
+		self::$member_block_cache[$id_member] = $member_blocks;
 
         return $member_blocks;
     }
@@ -170,8 +178,8 @@ abstract class WePHolder_Bar implements WePHolder
         $this->portal->registerArea('blockupdate', array($this, 'blockupdate'));
 
 		// Load the blocks appropiate for this bar
-		$blocks = $this->getBlocks();
-		$member_blocks = $this->getMemberBlocks($user_info['id']);
+		$blocks = self::getBlocks();
+		$member_blocks = self::getMemberBlocks($user_info['id']);
 
 		// Extend member blocks preference with blocks
 		foreach ($member_blocks as $block => $pref)
@@ -181,6 +189,11 @@ abstract class WePHolder_Bar implements WePHolder
 
 			$blocks[$block] = array_merge($blocks[$block], $pref);
 		}
+
+        // Make sure they belong to this bar
+        foreach ($blocks as $k => $block)
+            if ($block['holder'] != self::getHolderID())
+                unset($blocks[$k]);
 
 		// Sort by position
 		$position_index = array();
@@ -211,7 +224,7 @@ abstract class WePHolder_Bar implements WePHolder
     {
         return array();
     }
-    
+
 	/**
 	 * Takes a list of block, initiates them and then adds them to the bar
 	 *
@@ -318,7 +331,7 @@ abstract class WePHolder_Bar implements WePHolder
 						array(
 							'block' => (int) $disabled_block,
 							'user' => $context['user']['id'],
-							'bar' => $blockinfo['parameters']['bar'],
+							'bar' => $blockinfo['holder'],
 							'position' => $blockinfo['position'],
 							'enabled' => '0',
 						)
@@ -353,7 +366,7 @@ abstract class WePHolder_Bar implements WePHolder
 						array(
 							'block' => (int) $enabled_block,
 							'user' => $context['user']['id'],
-							'bar' => $blockinfo['parameters']['bar'],
+							'bar' => $blockinfo['holder'],
 							'position' => $blockinfo['position'],
 							'enabled' => '1',
 						)
