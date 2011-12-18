@@ -12,7 +12,7 @@
 * For support and updates, don't come to me						*
 ****************************************************************/
 
-function template_weportal_bar_left_above()
+function template_weportal_bar_left_before()
 {
 	global $context, $txt, $scripturl;
 
@@ -25,11 +25,11 @@ function template_weportal_bar_left_above()
 		</ul>';
 }
 
-function template_weportal_bar_left_below()
+function template_weportal_bar_left_after()
 {
 }
 
-function template_weportal_bar_right_above()
+function template_weportal_bar_right_before()
 {
 	global $context, $txt, $scripturl;
 
@@ -42,7 +42,7 @@ function template_weportal_bar_right_above()
 		</ul>';
 }
 
-function template_weportal_bar_right_below()
+function template_weportal_bar_right_after()
 {
 	echo '
 		<br style="clear: both;" />';
