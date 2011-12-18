@@ -208,14 +208,17 @@ class WePortal
 	 */
 	public function render()
 	{
-		// Nuke the default sidebar
-		wetem::get('sidebar_wrap')->remove();
-
 		// Load the templates and languages
 		loadPluginLanguage('Dragooon:WePortal', 'languages/WePortal');
 		loadPluginTemplate('Dragooon:WePortal', 'templates/WePortal');
 		add_plugin_css_file('Dragooon:WePortal', 'templates/styles/portal', true);
 		add_plugin_js_file('Dragooon:WePortal', 'templates/scripts/portal.js', true);
+
+        if ($_REQUEST['action'] == 'admin')
+            return true;
+
+		// Nuke the default sidebar
+		wetem::get('sidebar_wrap')->remove();
 
 		// Render all the content holders
 		foreach ($this->content_holders as $holder)
