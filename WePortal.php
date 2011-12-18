@@ -27,6 +27,12 @@ function WePortalAction()
 {
 	return WePortal::instance()->action();
 }
+// Stupid wrapper
+function WePortalProviders()
+{
+	return WePortal::instance()->adminProviders();
+}
+
 
 /**
  * Our main portal class, a new instance is called at index.php for the portal to start.
@@ -105,22 +111,24 @@ class WePortal
      */
     public static function hook_admin_areas()
     {
-        global $admin_areas;
+        global $admin_areas, $txt;
 
         // This isn't a shameless copy of the instruction in Admin.php, I just want to
         // add it after the second menu
-        array_merge(array_splice($admin_areas, 0, 2), array(
+        $admin_areas = array_merge(array_splice($admin_areas, 0, 2), array(
             'weportal' => array(
                 'title' => $txt['weportal'],
                 'permission' => array('manage_weportal'),
                 'areas' => array(
                     'providers' => array(
-                        'title' => $txt['wep_providers'],
-                        'file' => array('Dragooon:WePortal', 'WePortal::admin'),
+                        'label' => $txt['wep_providers'],
+                        'file' => array('Dragooon:WePortal', 'WePortal'),
+                        'function' => 'WePortalProviders',
+                        'icon' => 'delete.png',
+                        'bigicon' => 'delete.png',
                         'subsections' => array(
+                            'index' => array($txt['wep_providers_list']),
                             'add' => array($txt['wep_add_provider']),
-                            'edit' => array($txt['wep_edit_provider']),
-                            'delete' => array($txt['wep_delete_provider']),
                         ),
                     ),
                 ),
