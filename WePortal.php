@@ -453,6 +453,181 @@ class WePortal
 		// Return the instance
 		return $block_instance;
 	}
+
+    /**
+     * Content provider's admin area, accessed via index.php?action=admin;area=providers
+     *
+     * @access public
+     * @return void
+     */
+    public function adminProviders()
+    {
+        global $txt, $context;
+
+        $context[$context['admin_menu_name']]['tab_data'] = array(
+            'title' => $txt['wep_providers'],
+            'description' => $txt['wep_providers_desc'],
+            'tabs' => array(
+                'index' => array(),
+                'add' => array(
+                    'description' => $txt['wep_provider_add'],
+                 ),
+            ),
+        );
+
+        $sub_actions = array(
+            'add' => 'adminProvidersAdd',
+            'edit' => 'adminProvidersEdit',
+            'delete' => 'adminProvidersDelete',
+            'toggle' => 'adminProvidersToggle',
+        );
+        if (isset($_REQUEST['sa']) && isset($sub_actions[$_REQUEST['sa']]))
+            return call_user_func(array($this, $sub_actions[$_REQUEST['sa']]));
+
+        // Otherwise, this is the default "index" or list providers sub-action
+        $context['wep_providers'] = self::fetchContentProviders();
+
+        // Group by holders
+        $context['wep_holders'] = array();
+        foreach ($context['wep_providers'] as $provider)
+        {
+            if (!isset($context['wep_holders'][$provider['holder']]))
+                $context['wep_holders'][$provider['holder']] = array(
+                    'id' => $provider['holder'],
+                    'name' => $this->content_holders[$provider['holder']]->getHolderID(),
+                    'providers' => array(),
+                );
+
+            $context['wep_holders'][$provider['holder']]['providers'][] = $provider;
+        }
+
+        wetem::load('weportal_admin_providers_index');
+    }
+
+    /**
+     * Provides an interface to add a content provider, it's a 2 step proces
+     *
+     * Step 1 : Asks for provider and it's holder
+     * Step 2 : Takes in parameters from the providers and holders and ask for them
+     *
+     * @access protected
+     * @return void
+     */
+    protected function adminProvidersAdd()
+    {
+        global $context;
+
+        $groups = array();
+
+        // Get the basic group data.
+        $request = wesql::query('
+            SELECT id_group, group_name
+            FROM {db_prefix}membergroups
+            WHERE min_posts = -1' . (allowedTo('admin_forum') ? '' : '
+                AND group_type != {int:is_protected}') . '',
+            array(
+                'is_protected' => 1,
+            )
+        );
+        while ($row = wesql::fetch_assoc($request))
+            $groups[$row['id_group']] = array(
+                'id_group' => $row['id_group'],
+                'group_name' => $row['group_name'],
+            );
+        wesql::free_result($request);
+
+        $holders = array_keys($this->content_holders);
+        $providers = array_keys($this->content_providers);
+
+        $holder = !empty($_POST['holder']) ? $_POST['holder'] : '';
+        $provider = !empty($_POST['provider']) ? $_POST['provider'] : '';
+
+        if ((!empty($holder) && !in_array($holder, $holders)) || (!empty($provider) && !in_array($provider, $providers)))
+            fatal_lang_error('weportal_invalid_holder_provider');
+
+        $provider_params = array();
+        if (!empty($provider))
+            $providerparams = call_user_func(array($this->content_providers[$provider]['class'], 'getParameters'));
+
+        $holder_params = array();
+        if (!empty($holder))
+            $holder_params = call_user_func(array(get_class($this->content_holders[$holder]), 'getProviderParameters'));
+
+        // Are we saving this provider?
+        if (!empty($_POST['save']))
+        {
+            $save_params = array('provider' => array(), 'holder' => array());
+            foreach ($provider_params as $k => $param)
+                $save_params['provider'][$k] = $_POST['provider_' . $k];
+            foreach ($holder_params as $k => $param)
+                $save_params['holder'][$k] = $_POST['holder_' . $k];
+            
+            $_POST['title'] = htmlspecialchars($_POST['title']);
+            $save_groups = array();
+            foreach ($_POST['groups'] as $group)
+                if (!in_array($group, array_keys($groups)))
+                    $save_groups[] = $group;
+
+            $_POST['adjustable'] = (bool) $_POST['adjustable'];
+
+            wesql::insert('insert', '{db_prefix}wep_contents',
+                array('holder' => 'string', 'title' => 'string', 'controller' => 'string', 'adjustable' => 'int', 'parameters' => 'string', 'groups' => 'string', 'enabled' => 'int'),
+                array($holder, $_POST['title'], $provider, (int) $_POST['adjustable'], serialize($save_params), implode(',', $save_groups), 1)
+            );
+
+            redirectexit('action=admin;area=providers');
+        }
+        // Step 2?
+        elseif (!empty($_POST['step']) && !empty($holder) && !empty($provider))
+        {
+            $context['wep_holders'] = $holders;
+            $context['wep_providers'] = $providers;
+            $context['wep_params'] = $params;
+            $context['wep_holder'] = $holder;
+            $context['wep_provider'] = $provider;
+            $context['wep_groups'] = $groups;
+
+            wetem::load('weportal_admin_providers_add_step2');
+        }
+        else
+        {
+            $context['wep_holders'] = $holders;
+            $context['wep_providers'] = $providers;
+
+            wetem::load('weportal_admin_providers_add_step1');
+        }
+    }
+
+    /**
+     * Toggle a content provider's status(enable or disable)
+     *
+     * @access public
+     * @return void
+     */
+    public function adminProvidersToggle()
+    {
+        $provider = self::fetchContentProviders(false, null, array(), (int) $_GET['id']);
+        if (empty($provider))
+            fatal_lang_error('wep_invalid_provider');
+
+        $provider = $provider[$_GET['id']];
+
+        $enable = 0;
+        if (!$provider['enabled'])
+            $enable = 1;
+
+        wesql::query('
+            UPDATE {db_prefix}wep_contents
+            SET enabled = {int:enabled}
+            WHERE id_object = {int:id}',
+            array(
+                'enabled' => $enable,
+                'id' => $provider['id'],
+           )
+        );
+
+        redirectexit('action=admin;area=providers');
+    }
 }
 
 /**

@@ -89,4 +89,152 @@ function template_weblock_recent($posts)
 	echo '
 		</ul>';
 }
+
+function template_weportal_admin_providers_index()
+{
+    global $settings, $txt, $context, $scripturl;
+
+    foreach ($context['wep_holders'] as $holder)
+    {
+        echo '
+            <header class="cat">', $txt['wep_holder_' . $holder['id']], '</header>
+            <table class="table_grid cs0" style="width: 100%;">
+                <tr class="catbg">
+                    <th scope="col" style="width: 8%;">', $txt['wep_id'], '</th>
+                    <th scope="col">', $txt['wep_provider'], '</th>
+                    <th scope="col">', $txt['wep_title'], '</th>
+                    <th scope="col">', $txt['wep_actions'], '</th>
+                </tr>';
+        $alt = false;
+        foreach ($holder['providers'] as $provider)
+        {
+            $alt = !$alt;
+            echo '
+                <tr class="windowbg', $alt ? '2' : '', '">
+                    <td>', $provider['id'], '</td>
+                    <td>', $txt['wep_provider_' . $provider['controller']], '</td>
+                    <td>', $provider['title'], '</td>
+                    <td><a href="', $scripturl, '?action=admin;area=providers;sa=toggle;id=', $provider['id'], '">', $txt['wep_' . ($provider['enabled'] ? 'disable' : 'enable')], '</a></td>
+               </tr>';
+        }
+        echo '
+            </table>';
+   }
+}
+
+function template_weportal_admin_providers_add_step1()
+{
+    global $settings, $txt, $context, $scripturl;
+
+    echo '
+        <header class="cat">', $txt['wep_select_provider_holder'], '</header>
+        <form action="', $scripturl, '?action=admin;area=providers;sa=add" method="post">
+            <div class="windowbg2 wrc">
+                <dl class="settings">
+                   <dt>
+                        <label><span>', $txt['wep_holder'], '</span></label>
+                   </dt>
+                   <dd>
+                        <select name="holder">';
+    foreach ($context['wep_holders'] as $holder)
+        echo '
+                            <option value="', $holder, '">', $txt['wep_holder_' . $holder], '</option>';
+    echo '
+                        </select>
+                   </dd>
+                   <dt>
+                        <label><span>', $txt['wep_provider'], '</span></label>
+                   </dt>
+                   <dd>
+                        <select name="provider">';
+    foreach ($context['wep_providers'] as $provider)
+        echo '
+                            <option value="', $provider, '">', $txt['wep_provider_' . $provider], '</option>';
+    echo '
+                        </select>
+                   </dd>
+               </dl>
+               <hr />
+               <div class="righttext">
+                    <input type="submit" name="step" value="', $txt['submit'], '" class="submit" />
+               </div>
+           </div>
+        </form>';
+}
+
+function template_weportal_admin_providers_add_step2()
+{
+    global $context, $settings, $txt, $scripturl;
+
+    echo '
+        <form action="', $scripturl, '?action=admin;area=providers;sa=add" method="post">
+        <header class="cat">', $txt['wep_select_provider_parameters'], '</header>
+            <input type="hidden" name="holder" value="', $context['wep_holder'], '" />
+            <input type="hidden" name="provider" value="', $context['wep_provider'], '" />
+
+            <div class="windowbg2 wrc">
+                <dl class="settings">
+                    <dt>
+                        <label><span>', $txt['wep_title'], '</span></label>
+                    </dt>
+                    <dd>
+                        <input type="text" name="title" size="80" value="" />
+                    </dd>
+                    <dt>
+                        <label><span>', $txt['wep_groups'], '</span></label>
+                    </dt>
+                    <dd>';
+    foreach ($context['wep_groups'] as $group)
+        echo '
+                        <input type="checkbox" name="groups[]" value="', $group['id_group'], '" /> ', $group['group_name'], '<br />';
+    echo '
+                    </dd>
+                    <dt>
+                        <label><span>', $txt['wep_adjustable'], '</span></label>
+                    </dt>
+                    <dd>
+                        <input type="checkbox" name="adjustable" value="1" />
+                    </dd>
+                </dl>
+                <hr />
+                <dl class="settings">';
+    foreach ($context['wep_params'] as $key => $param)
+    {
+        echo '
+                    <dt>
+                        <label><span>', $param['label'], '</span></label>
+                    </dt>
+                    <dd>';
+        switch ($param['type'])
+        {
+            case 'text':
+                echo '
+                        <input name="', $key, '" type="text"', $param['subtype'] == 'int' ? ' size="10"' : '', ' value="" />';
+                break;
+            case 'textbox':
+                echo '
+                        <textarea name="', $key, '" cols="60" rows="8"></textarea>';
+                break;
+            case 'select';
+                echo '
+                        <select name="', $key, '">';
+                foreach ($param['options'] as $k => $v)
+                    echo '
+                            <option value="', $k, '">', $v, '</option>';
+                echo '
+                        </select>';
+                break;
+        }
+        echo '
+                    </dd>';
+    }
+    echo '
+               </dl>
+               <hr />
+               <div class="righttext">
+                    <input type="submit" name="save" value="', $txt['submit'], '" class="submit" />
+               </div>
+            </div>
+        </form>';
+}
 ?>
