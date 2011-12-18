@@ -264,7 +264,7 @@ class WePortal
 	 * @param int $object Any specific object to load
 	 * @return array The array containing blocks
 	 */
-	public static function fetchContentProviders($enabled_check, $holder = 'bar', $groups, $id_object)
+	public static function fetchContentProviders($enabled_check = false, $holder = null, $groups = array(), $id_object = 0)
 	{
 		global $user_info;
 
@@ -286,6 +286,7 @@ class WePortal
 			ORDER BY c.position ASC',
 			array(
 				'enabled' => '1',
+                'object' => $id_object,
 				'holder' => $holder,
 			)
 		);
@@ -305,7 +306,7 @@ class WePortal
 				'position' => $row['position'],
 				'adjustable' => (bool) $row['adjustable'],
 				'parameters' => unserialize($row['parameters']),
-				'groups' => explode(',', $row['groups']),
+				'groups' => empty($row['groups']) ? array() : explode(',', $row['groups']),
 				'enabled' => (bool) $row['enabled'],
 			);
 		}
