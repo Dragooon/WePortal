@@ -446,9 +446,6 @@ class WePortal
 		$controller = $controllers[strtolower($info['controller'])];
 
 		if (empty($controller))
-			return false;
-
-		if (empty($controller))
 			fatal_error('WePortal::initateContentProvider - Undefined controller : ' . $info['controller']);
 
 		$block_instance = new $controller['class']($info['parameters'], $holder, $this, $info['title'], $info['id'], $info['enabled'], $info);
