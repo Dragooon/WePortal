@@ -74,7 +74,7 @@ class WePHolder_Bar_right extends WePHolder_Bar
 		global $context;
 
 		$context['weportal_right_blocks'] = $this->blocks;
-		wetem::layer('weportal_bar_right', 'main_wrap', 'below');
+		wetem::layer('weportal_bar_right', 'main_wrap', 'after');
 	}
 }
 ?>
