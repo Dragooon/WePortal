@@ -481,8 +481,8 @@ class WePortal
             'delete' => 'adminProvidersDelete',
             'toggle' => 'adminProvidersToggle',
         );
-        if (isset($_REQUEST['sa']) && isset($sub_actions[$_REQUEST['sa']]))
-            return call_user_func(array($this, $sub_actions[$_REQUEST['sa']]));
+        if (isset($context['current_subaction']) && isset($sub_actions[$context['current_subaction']]))
+            return call_user_func(array($this, $sub_actions[$context['current_subaction']]));
 
         // Otherwise, this is the default "index" or list providers sub-action
         $context['wep_providers'] = self::fetchContentProviders();
