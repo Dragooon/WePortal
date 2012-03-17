@@ -613,16 +613,12 @@ class WePortal
 
         $provider = $provider[$_GET['id']];
 
-        $enable = 0;
-        if (!$provider['enabled'])
-            $enable = 1;
-
         wesql::query('
             UPDATE {db_prefix}wep_contents
             SET enabled = {int:enabled}
             WHERE id_object = {int:id}',
             array(
-                'enabled' => $enable,
+                'enabled' => (int) !$provider['enabled'],
                 'id' => $provider['id'],
            )
         );
