@@ -2,7 +2,7 @@
 <plugin id="Dragooon:WePortal">
   <name>WePortal</name>
   <author email="mail@dragooon.net" url="http://smf-media.com/">Shitiz "Dragooon" Garg</author>
-  <description>Basic Portal fo Wedge</description>
+  <description>Basic Portal for Wedge</description>
   <version>0.1</version>
 
   <min-versions>
